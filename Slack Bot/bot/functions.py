@@ -2,15 +2,10 @@ import re
 from slackclient import SlackClient
 
 
-
-EXAMPLE_COMMAND = 'do'
-MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
-
-
 def parse_direct_mention(message_text):
+    MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
     matches = re.search(MENTION_REGEX, message_text)
-
-    
+    return (matches.group(1), matches.group(2).strip() if matches else (None,None))
 
 def  parse_bot_commands(slack_events, starterbot_id):
     for event in slack_events:
