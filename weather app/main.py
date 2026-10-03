@@ -2,7 +2,11 @@ import requests
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout
 from PyQt5.QtCore import Qt
+from random import choices
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class WeatherApp(QWidget):
     def __init__(self):
@@ -78,7 +82,7 @@ class WeatherApp(QWidget):
 
     def get_weather(self):
 
-        api_key = ''
+        api_key = os.getenv('OPENWEATHER_API_kEY')
 
         city = self.city_input.text()
         url = f'https://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}'
@@ -89,7 +93,6 @@ class WeatherApp(QWidget):
             response.raise_for_status()
 
             data = response.json()
-
             if data['cod'] == 200:
                 self.display_weather(data)
 
@@ -135,18 +138,38 @@ class WeatherApp(QWidget):
     def display_error(self, message):
         self.temperature_label.setStyleSheet('font-size: 30px;')
         self.temperature_label.setText(message)
+        self.emoji_label.clear()
+        self.description_label.clear()
 
 
     def display_weather(self, data):
         temperature_k = data['main']['temp']
         weather_description = data['weather'][0]['description']
         temperature_c = temperature_k - 273.15
+        weather_id = data['weather'][0]['id']
         # temperature_f = (temperature_k *9/5) - 459.67
-        self.temperature_label.setStyleSheet('font-size: 75px;')
+
         self.temperature_label.setText(f'{temperature_c:.1f}ºⅭ')
+        self.temperature_label.setStyleSheet('font-size: 75px;')
         self.description_label.setText(f'{weather_description}')
+        self.emoji_label.setText(self.get_weather_emoji(weather_id))
+        
 
 
+    @staticmethod
+    def get_weather_emoji(weather_id):
+        dict_of_weather = {
+    200 :'⛈️',
+    300 :'🌦️',
+    500 : '☔',
+    600 : '☃️',
+    700 : choices(['🌋','🌪️','🌫️']),
+    'Clear_sky' : '☀️',
+    800 : '☁️'
+}
+        if weather_id == 800:
+            return dict_of_weather.get('Clear_sky','')
+        return dict_of_weather.get((weather_id//100)*100,'')
 
 
 
